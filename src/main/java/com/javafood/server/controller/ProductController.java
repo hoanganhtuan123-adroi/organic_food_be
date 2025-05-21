@@ -1,0 +1,89 @@
+package com.javafood.server.controller;
+
+import com.javafood.server.dto.request.ProductRequest;
+import com.javafood.server.dto.response.ApiResponse;
+import com.javafood.server.dto.response.ProductResponse;
+import com.javafood.server.service.ProductService;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.List;
+@Slf4j
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@RestController
+@RequestMapping("/products")
+public class ProductController {
+    @Autowired
+     ProductService productService;
+
+    @GetMapping
+    public ApiResponse<List<ProductResponse>> getAllProducts() {
+        return ApiResponse.<List<ProductResponse>>builder()
+                .code(200)
+                .message("Lấy danh sách thành công!")
+                .result(productService.getAllProducts())
+                .build();
+    }
+
+    @GetMapping("/{productId}")
+    public ApiResponse<ProductResponse> getDetailProduct(@PathVariable Integer productId) {
+        log.info("ID " + productId);
+        return ApiResponse.<ProductResponse>builder()
+                .code(200)
+                .message("Lấy danh sách thành công!")
+                .result(productService.getProductsDetail(productId))
+                .build();
+    }
+
+    @PutMapping("/{productId}")
+    ApiResponse<ProductResponse> updateProduct(@PathVariable Integer productId ,@RequestParam("productName") String productName,
+                                            @RequestParam("description") String description,
+                                            @RequestParam("unit") String unit,
+                                            @RequestParam("origin") String origin,
+                                            @RequestParam("tags") String tags,
+                                            @RequestParam("isActive") boolean isActive,
+                                            @RequestParam("price") BigDecimal price,
+                                            @RequestPart(value = "image", required = false) List<MultipartFile> images
+    ) throws IOException {
+        log.info("price : " + price);
+        log.info(String.valueOf(price instanceof BigDecimal));
+        ProductRequest productRequest = ProductRequest.builder()
+                .productName(productName)
+                .description(description)
+                .unit(unit)
+                .origin(origin)
+                .tags(tags)
+                .isActive(isActive)
+                .image(images)
+                .price(price)
+                .build();
+        return ApiResponse.<ProductResponse>builder().code(201).message("Sửa sản phẩm thành công!").result(productService.updateProduct(productId, productRequest)).build();
+    }
+
+    @PostMapping()
+    ApiResponse<ProductResponse> addProduct(@RequestParam("productName") String productName,
+                                            @RequestParam("description") String description,
+                                            @RequestParam("unit") String unit,
+                                            @RequestParam("origin") String origin,
+                                            @RequestParam("tags") String tags,
+                                            @RequestParam("isActive") boolean isActive,
+                                            @RequestPart(value = "image", required = false) List<MultipartFile> images
+                                            ) throws IOException {
+        ProductRequest productRequest = ProductRequest.builder()
+                .productName(productName)
+                .description(description)
+                .unit(unit)
+                .origin(origin)
+                .tags(tags)
+                .isActive(isActive)
+                .image(images)
+                .build();
+        return ApiResponse.<ProductResponse>builder().code(201).message("Thêm sản phẩm thành công!").result(productService.createProduct(productRequest)).build();
+    }
+}

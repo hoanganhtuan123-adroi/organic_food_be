@@ -1,0 +1,20 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  datasource:
+    url: "jdbc:mysql://localhost:3306/organic_java_db"
+    username: "root"
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  web:
+    resources:
+      static-locations: file:uploads/
+jwt:
+  sign_key: "K+e31viQ3pnq6Zrb1UyM1PIr6arYEpB7cnk7j4qpBIaLMMeUVzwrwMY5vfXhoAT+"
+
