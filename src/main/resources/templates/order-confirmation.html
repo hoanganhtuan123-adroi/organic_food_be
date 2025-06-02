@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Xác nhận đơn hàng</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0;">
+<div style="background-color: #f8f8f8; padding: 20px; text-align: center;">
+    <h1 style="color: #333;">Xác nhận đơn hàng</h1>
+</div>
+<div style="padding: 20px;">
+    <p>Chào <span th:text="${customerName}"></span>,</p>
+    <p>Cảm ơn bạn đã đặt hàng. Dưới đây là thông tin đơn hàng của bạn:</p>
+    <ul style="list-style-type: none; padding: 0;">
+        <li><strong>Mã đơn hàng:</strong> <span th:text="${orderId}"></span></li>
+        <li><strong>Ngày đặt hàng:</strong> <span th:text="${orderDate}"></span></li>
+        <li><strong>Tổng tiền:</strong> <span th:text="${finalAmount}"></span> VND</li>
+    </ul>
+</div>
+<div style="background-color: #f8f8f8; padding: 20px; text-align: center;">
+    <p>Trân trọng,</p>
+    <p>Đội ngũ JavaFood</p>
+</div>
+</body>
+</html>

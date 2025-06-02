@@ -9,14 +9,15 @@ import com.javafood.server.exception.ErrorCode;
 import com.javafood.server.mapper.UserMapper;
 import com.javafood.server.repository.UserRepository;
 import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,7 @@ import java.util.Optional;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Service
 public class UserService {
+    final static String adminRole = "hasAuthority('SCOPE_ADMIN')";
     @Autowired
     PasswordEncoder passwordEncoder;
     @Autowired
@@ -34,10 +36,11 @@ public class UserService {
     @Autowired
     UserMapper userMapper;
 
+    @PreAuthorize(adminRole)
     public UserResponse addUser(UserRequest userRequest) {
         log.info("Adding user: " + userRequest.getUsername());
         log.info("Adding user: " + userRepository.existsByUsername(userRequest.getUsername()));
-        if(userRepository.existsByUsername(userRequest.getUsername())) { throw new AppException(ErrorCode.USERNAME_EXISTED); }
+        if(userRepository.existsByUsername(userRequest.getUsername())) { throw new AppException(ErrorCode.EXISTS_DATA); }
 
         String hash_password = passwordEncoder.encode(userRequest.getPassword());
 
@@ -50,13 +53,19 @@ public class UserService {
         return userMapper.toUserResponse(userEntity);
     }
 
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @PreAuthorize(adminRole)
     public List<UserResponse> getAllUser(){
         return userRepository.findAll().stream().map(userMapper::toUserResponse).toList();
     }
 
+    @PreAuthorize(adminRole)
+    public UserResponse getUserById(Integer id) {
+        return userRepository.findById(id).map(userMapper::toUserResponse).orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTS_DATA));
+    }
+
 //    @PostAuthorize("returnObject.username == authentication.name"
-    public UserResponse updateUser(String id, UserRequest userRequest) {
+    @PreAuthorize(adminRole)
+    public UserResponse updateUser(Integer id, UserRequest userRequest) {
         UserEntity userEntity = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User Not Found"));
 
         userMapper.updateUser(userEntity, userRequest);
@@ -70,6 +79,26 @@ public class UserService {
         String username = context.getAuthentication().getName();
         UserEntity byUsername = userRepository.findByUsername(username).orElseThrow(()-> new AppException(ErrorCode.USER_NOT_EXISTS));
         return userMapper.toUserResponse(byUsername);
+    }
+
+    @PreAuthorize(adminRole)
+    public Page<UserResponse> getUsersPagination(int pageNo, int pageSize, String sortBy, String sortDir) {
+        try {
+            Pageable pageable = PageRequest.of(pageNo, pageSize, sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending());
+            Page<UserEntity> usersPagination = userRepository.getUsersWithPagination(pageable);
+            return usersPagination.map(userMapper::toUserResponse);
+        } catch(Exception e){
+            log.error("Lỗi khi lấy danh sách sản phẩm phân trang: ", e);
+            throw e;
+        }
+    }
+
+    @PreAuthorize(adminRole)
+    public void deleteUser(Integer id) {
+        if(!userRepository.existsById(id)){
+            throw new AppException(ErrorCode.NOT_EXISTS_DATA);
+        }
+        userRepository.deleteById(id);
     }
 
 }

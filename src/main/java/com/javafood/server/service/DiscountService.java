@@ -1,5 +1,6 @@
 package com.javafood.server.service;
 
+import com.javafood.server.dto.request.DiscountActiveRequest;
 import com.javafood.server.dto.request.DiscountRequest;
 import com.javafood.server.dto.response.DiscountResponse;
 import com.javafood.server.entity.DiscountEntity;
@@ -22,14 +23,14 @@ public class DiscountService {
     @Autowired
     private DiscountMapper discountMapper;
 
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @PreAuthorize(authorizeAdmin)
     public DiscountResponse createDiscount(DiscountRequest discountRequest) {
         DiscountEntity discountEntity = discountMapper.toDiscountEntity(discountRequest);
         discountRepository.save(discountEntity);
         return discountMapper.toDiscountResponse(discountEntity);
     }
 
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @PreAuthorize(authorizeAdmin)
     public DiscountResponse updateDiscount(Integer discountID, DiscountRequest discountRequest) {
         DiscountEntity discountEntity = discountRepository.findById(discountID).orElseThrow(()-> new AppException(ErrorCode.NOT_EXISTS_DATA));
         if(discountRepository.existsByCode(discountRequest.getCode())) throw new AppException(ErrorCode.EXISTS_DATA);
@@ -38,6 +39,15 @@ public class DiscountService {
         discountEntity.setDiscountValue(discountRequest.getDiscountValue());
         discountEntity.setStartDate(discountRequest.getStartDate());
         discountEntity.setEndDate(discountRequest.getEndDate());
+        discountEntity.setActive(discountRequest.getActive());
+
+        discountRepository.save(discountEntity);
+        return discountMapper.toDiscountResponse(discountEntity);
+    }
+
+    public DiscountResponse activeDiscount(Integer discountID, DiscountActiveRequest discountRequest) {
+        DiscountEntity discountEntity = discountRepository.findById(discountID).orElseThrow(()-> new AppException(ErrorCode.NOT_EXISTS_DATA));
+
         discountEntity.setActive(discountRequest.getActive());
 
         discountRepository.save(discountEntity);

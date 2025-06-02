@@ -55,7 +55,7 @@ public class AuthenticationService {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
         var token = generateToken(user);
-        return AuthenticationResponse.builder().token(token).isAuthenticated(true).build();
+        return AuthenticationResponse.builder().id(user.getId()).role(user.getRole()).username(user.getUsername()).token(token).isAuthenticated(true).build();
     }
 
     // logout
@@ -78,7 +78,7 @@ public class AuthenticationService {
                 .issuer("hoangtuan") // Chủ sở hữu
                 .issueTime(new Date()) // Thời gian bắt đầu token
                 .expirationTime(new Date(
-                        Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
+                        Instant.now().plus(3, ChronoUnit.HOURS).toEpochMilli()
                 )) // thời hạn token sau 1h
                 .jwtID(UUID.randomUUID().toString())
                 .claim("scope", userEntity.getRole()) // Custome them gia tri vao token

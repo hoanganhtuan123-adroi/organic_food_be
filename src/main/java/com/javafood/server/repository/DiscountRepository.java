@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DiscountRepository extends JpaRepository<DiscountEntity, Integer> {
     boolean existsByCode(String discountCode);
+    DiscountEntity findByDiscountId(Integer discountId);
 }

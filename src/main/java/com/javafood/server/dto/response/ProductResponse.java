@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -25,4 +26,6 @@ public class ProductResponse {
     String tags;
     BigDecimal price;
     Boolean isActive;
+    LocalDateTime createdAt;
+    LocalDateTime updatedAt;
 }

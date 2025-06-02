@@ -5,6 +5,7 @@ import com.javafood.server.exception.AppException;
 import com.javafood.server.exception.ErrorCode;
 import com.javafood.server.service.AuthenticationService;
 import com.nimbusds.jose.JOSEException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.spec.SecretKeySpec;
 import java.text.ParseException;
 import java.util.Objects;
-
+@Slf4j
 @Component
 public class CustomeJwtDecoder implements JwtDecoder {
     @Value("${jwt.sign_key}")
@@ -31,6 +32,7 @@ public class CustomeJwtDecoder implements JwtDecoder {
     @Override
     public Jwt decode(String token) throws JwtException {
         try {
+            log.info(token);
             var response =  authenticationService.introspectToken(IntrospectRequest.builder()
                     .token(token)
                     .build());

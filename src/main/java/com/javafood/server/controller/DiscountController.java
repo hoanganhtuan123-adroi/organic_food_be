@@ -1,5 +1,6 @@
 package com.javafood.server.controller;
 
+import com.javafood.server.dto.request.DiscountActiveRequest;
 import com.javafood.server.dto.request.DiscountRequest;
 import com.javafood.server.dto.response.ApiResponse;
 import com.javafood.server.dto.response.DiscountResponse;
@@ -42,4 +43,16 @@ public class DiscountController {
         discountService.deleteDiscount(discountId);
         return ApiResponse.<Void>builder().code(200).message("Xoá thành công!").build();
     }
+
+    @PutMapping("/active/{discountId}")
+    ApiResponse<DiscountResponse> activeDiscount(@PathVariable Integer discountId, @RequestBody DiscountActiveRequest discountActiveRequest) {
+
+        return ApiResponse.<DiscountResponse>builder()
+                .code(200)
+                .message("Cập nhập thành công!")
+                .result(discountService.activeDiscount(discountId, discountActiveRequest))
+                .build();
+    }
+
+
 }

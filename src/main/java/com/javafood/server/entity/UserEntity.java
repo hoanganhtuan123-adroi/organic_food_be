@@ -5,8 +5,11 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -16,8 +19,8 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 public class UserEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Integer id;
     String firstName;
     String lastName;
     @Column(unique=true)
@@ -29,7 +32,9 @@ public class UserEntity {
     @Size(min=8, message = "INVALID_PASSWORD")
     String password;
     String role;
-    Timestamp created_at;
-    Timestamp updated_at;
+    @CreationTimestamp
+    LocalDateTime created_at;
+    @UpdateTimestamp
+    LocalDateTime updated_at;
 
 }

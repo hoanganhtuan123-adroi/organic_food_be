@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
     UNCATEGORIZED_EXCEPTION(9999, "Lỗi không xác định!", HttpStatus.BAD_REQUEST),
+    SUCCESS(200, "Lỗi không xác định!", HttpStatus.BAD_REQUEST),
+
     INVALID_KEY(9998, "Key không xác định!", HttpStatus.BAD_REQUEST),
     INVALID_EMAIL(1001,"Email không đúng định dạng!", HttpStatus.BAD_REQUEST),
     USERNAME_EXISTED(1002, "Username đã tồn tại", HttpStatus.BAD_REQUEST),
@@ -18,7 +20,9 @@ public enum ErrorCode {
     FIELD_REQUIRED(2002, "Required field is missing!", HttpStatus.BAD_REQUEST),
     EXISTS_DATA(2003, "Giá trị đã tồn tại", HttpStatus.BAD_REQUEST),
     NOT_EXISTS_DATA(2004,"Giá trị không tồn tại", HttpStatus.BAD_REQUEST),
-    INPUT_EMPTY(2005, "Giá trị không được để trống", HttpStatus.BAD_REQUEST);
+    INPUT_EMPTY(2005, "Giá trị không được để trống", HttpStatus.BAD_REQUEST),
+    FILE_TOO_LARGE(2006, "Kích thước file quá lớn", HttpStatus.BAD_REQUEST );
+
 
     ErrorCode(int code, String message, HttpStatus httpStatus) {
         this.code = code;

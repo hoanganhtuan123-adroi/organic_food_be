@@ -15,7 +15,7 @@ import java.security.Timestamp;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CategoryResponse {
-    Integer id;
+    Integer categoryId;
     String categoryName;
     String description;
 }
