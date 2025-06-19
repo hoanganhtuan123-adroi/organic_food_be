@@ -2,6 +2,7 @@ package com.javafood.server.controller;
 
 import com.javafood.server.dto.request.OrderRequest;
 import com.javafood.server.dto.response.*;
+import com.javafood.server.service.MomoService;
 import com.javafood.server.service.OrderService;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -24,6 +25,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
+    @Autowired
+    private MomoService momoPaymentService;
+
     @Autowired
     OrderService orderService;
 
@@ -84,5 +88,14 @@ public class OrderController {
                 .message("Sản phẩm bán chạy")
                 .result(products)
                 .build();
+    }
+
+    @GetMapping("/momo-payment")
+    public String initiatePayment(@RequestParam String orderId, @RequestParam long amount, @RequestParam String orderInfo) {
+        try {
+            return momoPaymentService.initiatePayment(orderId, amount, orderInfo);
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
     }
 }

@@ -17,7 +17,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
 
     Optional<UserEntity> findByUsername(String id);
 
-    @Query(value = "SELECT a FROM com.javafood.server.entity.UserEntity a WHERE a.role != 'ADMIN' AND a.firstName != '' AND a.lastName != '' ",
-            countQuery = "SELECT count(a) FROM com.javafood.server.entity.UserEntity a  WHERE a.role != 'ADMIN' AND a.firstName != '' AND a.lastName != '' ") // Thêm countQuery để Spring biết cách đếm tổng số phần tử
+    @Query(value = "SELECT a FROM Users a WHERE a.role != 'ADMIN' AND a.firstName != '' AND a.lastName != '' ",
+            countQuery = "SELECT count(a) FROM Users a  WHERE a.role != 'ADMIN' AND a.firstName != '' AND a.lastName != '' ") // Thêm countQuery để Spring biết cách đếm tổng số phần tử
     Page<UserEntity> getUsersWithPagination(Pageable pageable);
 }

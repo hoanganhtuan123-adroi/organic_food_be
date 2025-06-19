@@ -92,13 +92,9 @@ public class ProductService {
         }
     }
 
-    public Page<ProductResponse> getFewProductPagination(int pageNo, int pageSize, String sortBy, String sortDir) {
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_USER')")
+    public Page<ProductResponse> getProductToClient(int pageNo, int pageSize, String sortBy, String sortDir) {
         try {
-            // Giới hạn pageSize tối đa là 8
-            if (pageSize > 8) {
-                pageSize = 8;
-            }
-
             // Tạo Sort object
             Sort sort = sortDir.equalsIgnoreCase("desc") ?
                     Sort.by(sortBy).descending() :
@@ -108,7 +104,7 @@ public class ProductService {
             Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
             // Lấy dữ liệu từ repository
-            Page<ProductEntity> productsPagination = productRepository.getFewProductsToClient(pageable);
+            Page<ProductEntity> productsPagination = productRepository.getProductsToClient(pageable);
 
             // Map sang ProductResponse
             return productsPagination.map(productMapper::toProductResponse);
@@ -167,12 +163,6 @@ public class ProductService {
 
     @PreAuthorize(adminRole)
     public ProductResponse updateProduct(Integer productId, ProductRequest productRequest) throws IOException {
-        CategoryEntity category = categoryRepo.findByCategoryId(productRequest.getCategoryId());
-        DiscountEntity discount = null;
-        if(productRequest.getDiscountId() != null || productRequest.getDiscountId() instanceof Integer  ) {
-            discount = discountRepo.findByDiscountId(productRequest.getDiscountId());
-        }
-
         ProductEntity productEntity = productRepository.findByProductId(productId)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTS_DATA));
 
@@ -219,16 +209,44 @@ public class ProductService {
         }
 
         try {
-            // ✅ Bước 2: Cập nhật thông tin sản phẩm
-            productEntity.setProductName(productRequest.getProductName());
-            productEntity.setDescription(productRequest.getDescription());
-            productEntity.setUnit(productRequest.getUnit());
-            productEntity.setOrigin(productRequest.getOrigin());
-            productEntity.setTags(productRequest.getTags());
-            productEntity.setPrice(productRequest.getPrice());
+            // ✅ Bước 2: Cập nhật thông tin sản phẩm chỉ khi trường không null
+            if (productRequest.getProductName() != null) {
+                productEntity.setProductName(productRequest.getProductName());
+            }
+            if (productRequest.getDescription() != null) {
+                productEntity.setDescription(productRequest.getDescription());
+            }
+            if (productRequest.getUnit() != null) {
+                productEntity.setUnit(productRequest.getUnit());
+            }
+            if (productRequest.getOrigin() != null) {
+                productEntity.setOrigin(productRequest.getOrigin());
+            }
+            if (productRequest.getTags() != null) {
+                productEntity.setTags(productRequest.getTags());
+            }
+            if (productRequest.getPrice() != null) {
+                productEntity.setPrice(productRequest.getPrice());
+            }
+            if (productRequest.getCategoryId() != null) {
+                CategoryEntity category = categoryRepo.findByCategoryId(productRequest.getCategoryId());
+                if (category == null) {
+                    throw new AppException(ErrorCode.NOT_EXISTS_DATA);
+                }
+                productEntity.setCategory(category);
+            }
+
+            if (productRequest.getDiscountId() != null) {
+                DiscountEntity discount = discountRepo.findByDiscountId(productRequest.getDiscountId());
+                if (discount == null) {
+                    throw new AppException(ErrorCode.NOT_EXISTS_DATA);
+                }
+                productEntity.setDiscount(discount);
+            } else {
+                productEntity.setDiscount(null);
+            }
+
             productEntity.setUpdatedAt(LocalDateTime.now());
-            productEntity.setCategory(category);
-            productEntity.setDiscount(discount);
 
             // ✅ Bước 3: Nếu có ảnh mới → Xóa bản ghi ảnh cũ & gán ảnh mới
             if (!newImages.isEmpty()) {
@@ -294,5 +312,28 @@ public class ProductService {
         return fullId.startsWith("/") ? fullId.substring(1) : fullId;
     }
 
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_USER')")
+    public Page<ProductResponse> getProductByCategory(int pageNo, int pageSize, String sortBy, String sortDir, Integer categoryId) {
+        try {
+
+            // Tạo Sort object
+            Sort sort = sortDir.equalsIgnoreCase("desc") ?
+                    Sort.by(sortBy).descending() :
+                    Sort.by(sortBy).ascending();
+
+            // Tạo Pageable
+            Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+            // Lấy dữ liệu từ repository
+            Page<ProductEntity> productsPagination = productRepository.getProductsByCategory(pageable, categoryId);
+
+            // Map sang ProductResponse
+            return productsPagination.map(productMapper::toProductResponse);
+
+        } catch (Exception e) {
+            log.error("Lỗi khi lấy danh sách sản phẩm phân trang: ", e);
+            throw new RuntimeException("Không thể lấy danh sách sản phẩm", e);
+        }
+    }
 
 }

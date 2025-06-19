@@ -22,11 +22,10 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -95,7 +94,6 @@ public class OrderService {
         orderDetailRepository.saveAll(orderDetails);
 
 
-        // Tạo và lưu PaymentEntity (nếu có)
         Set<PaymentEntity> payments = new HashSet<>();
         if (orderRequest.getPayments() != null && !orderRequest.getPayments().isEmpty()) {
             for (PaymentRequest paymentRequest : orderRequest.getPayments()) {
@@ -116,12 +114,35 @@ public class OrderService {
         }
 
         try {
+
+            DecimalFormat df = new DecimalFormat("#,##0.00");
+            List<Map<String, String>> orderDetailsForEmail = new ArrayList<>();
+            for (OrderDetailEntity detail : orderDetails) {
+                Map<String, String> detailMap = new HashMap<>();
+                detailMap.put("productName", detail.getProduct() != null ? detail.getProduct().getProductName() : "Custom item");
+                detailMap.put("quantity", String.valueOf(detail.getQuantity()));
+                detailMap.put("finalPrice", df.format(detail.getFinalPrice()));
+                BigDecimal subtotal = detail.getFinalPrice().multiply(BigDecimal.valueOf(detail.getQuantity()));
+                detailMap.put("subtotal", df.format(subtotal));
+                orderDetailsForEmail.add(detailMap);
+            }
+
+            String orderDateFormatted = orderEntity.getOrderDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+            String subtotalFormatted = df.format(orderEntity.getSubtotalAmount());
+            String shippingFeeFormatted = df.format(orderEntity.getShippingFee());
+            String finalAmountFormatted = df.format(orderEntity.getFinalAmount());
+
             String customerEmail = user.getEmail();
             Context context = new Context();
             context.setVariable("customerName", user.getUsername());
             context.setVariable("orderId", orderEntity.getOrderId());
-            context.setVariable("orderDate", orderEntity.getOrderDate().toString());
-            context.setVariable("finalAmount", orderEntity.getFinalAmount().toString());
+            context.setVariable("orderDate", orderDateFormatted);
+            context.setVariable("orderDetails", orderDetailsForEmail);
+            context.setVariable("shippingAddress", orderEntity.getShippingAddress());
+            context.setVariable("shippingMethod", orderEntity.getShippingMethod());
+            context.setVariable("subtotal", subtotalFormatted);
+            context.setVariable("shippingFee", shippingFeeFormatted);
+            context.setVariable("finalAmount", finalAmountFormatted);
 
             String emailContent = templateEngine.process("order-confirmation", context);
 
@@ -143,14 +164,14 @@ public class OrderService {
         return orderResponse;
     }
 
-    // API 1: Lấy danh sách đơn hàng với phân trang
+
     @Transactional(readOnly = true)
     public Page<SimpleOrderResponse> getAllOrders(Pageable pageable) {
         Page<OrderEntity> orderPage = orderRepository.findAll(pageable);
         return orderPage.map(orderMapper::toSimpleOrderResponse);
     }
 
-    // API 2: Lấy chi tiết một đơn hàng
+
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public OrderResponse getOrderById(Integer orderId) {
@@ -163,7 +184,7 @@ public class OrderService {
         return response;
     }
 
-    // API 3: Lấy danh sách đơn hàng theo ID người dùng
+
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_USER')")
     public List<OrderResponse> getOrdersByUserId(Integer userId) {
@@ -186,7 +207,7 @@ public class OrderService {
         }
         BigDecimal totalRevenue = orderRepository.getTotalRevenue(startDate, endDate);
         Long numberOfOrders = orderRepository.getNumberOfOrders(startDate, endDate);
-        BigDecimal averageOrderValue = numberOfOrders > 0 ? totalRevenue.divide(BigDecimal.valueOf(numberOfOrders), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+        BigDecimal averageOrderValue = numberOfOrders > 0 ? totalRevenue.divide(BigDecimal.valueOf(numberOfOrders), 0, RoundingMode.HALF_UP) : BigDecimal.ZERO;
         return new RevenueReport(totalRevenue, numberOfOrders, averageOrderValue);
     }
 

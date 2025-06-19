@@ -52,7 +52,7 @@ public class CategoryService {
         return categoryMapper.toCategoryResponse(categoryRepository.save(category));
     }
 
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_USER')")
     public List<CategoryResponse> getAllCategory(){
         return categoryRepository.findAll().stream().map((item)-> categoryMapper.toCategoryResponse(item)).toList() ;
     }

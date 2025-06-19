@@ -64,7 +64,7 @@ public class ProductController {
                                                @RequestParam("isActive") boolean isActive,
                                                @RequestParam("price") BigDecimal price,
                                                @RequestParam("categoryID") Integer categoryID,
-                                               @RequestParam("discountID") Integer discountId,
+                                               @RequestParam(value = "discountID", required = false) Integer discountId,
                                                @RequestPart(value = "image", required = false) List<MultipartFile> images
     ) throws IOException {
         log.info("price : " + price);
@@ -117,21 +117,16 @@ public class ProductController {
 
 
     @GetMapping("/feature-product/pagination")
-    public ApiResponse<Page<ProductResponse>> getFewProductsToClient(
+    public ApiResponse<Page<ProductResponse>> getProductsToClient(
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam(defaultValue = "8") int pageSize,
-            @RequestParam(defaultValue = "productId") String sortBy, // Sửa từ "id" thành "productId"
+            @RequestParam(defaultValue = "productId") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDir
     ){
-        // Giới hạn pageSize tối đa là 8
-        if (pageSize > 8) {
-            pageSize = 8;
-        }
-
         return ApiResponse.<Page<ProductResponse>>builder()
                 .code(200)
                 .message("Lấy danh sách sản phẩm thành công")
-                .result(productService.getFewProductPagination(pageNo, pageSize, sortBy, sortDir))
+                .result(productService.getProductToClient(pageNo, pageSize, sortBy, sortDir))
                 .build();
     }
 
@@ -139,5 +134,20 @@ public class ProductController {
     public ApiResponse<Void> activateProduct(@PathVariable Integer productId, @RequestBody ProductRequest productRequest) {
         productService.activeProduct(productId, productRequest);
         return ApiResponse.<Void>builder().code(200).build();
+    }
+
+    @GetMapping("/category/{categoryId}")
+    public ApiResponse<Page<ProductResponse>> getProductsByCategory(
+            @RequestParam(defaultValue = "0") int pageNo, // Trang mặc định là 0
+            @RequestParam(defaultValue = "10") int pageSize, // Kích thước trang mặc định là 10
+            @RequestParam(defaultValue = "id") String sortBy, // Sắp xếp mặc định theo ID
+            @RequestParam(defaultValue = "asc") String sortDir, // Hướng sắp xếp mặc định là tăng dần
+            @PathVariable Integer categoryId
+    ){
+        return ApiResponse.<Page<ProductResponse>>builder()
+                .code(200)
+                .message("Lấy danh sách thành công")
+                .result(productService.getProductByCategory(pageNo, pageSize, sortBy, sortDir, categoryId))
+                .build();
     }
 }

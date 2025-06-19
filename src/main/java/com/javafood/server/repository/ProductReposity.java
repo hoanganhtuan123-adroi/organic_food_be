@@ -18,7 +18,7 @@ public interface ProductReposity extends JpaRepository<ProductEntity, Integer> {
 
     Optional<ProductEntity> findByProductId(int id);
 
-    @Query("SELECT p FROM com.javafood.server.entity.ProductEntity p LEFT JOIN FETCH p.category LEFT JOIN FETCH p.discount LEFT JOIN FETCH p.images ")
+    @Query("SELECT p FROM Products p LEFT JOIN FETCH p.category LEFT JOIN FETCH p.discount LEFT JOIN FETCH p.images ")
     List<ProductEntity> findAllWithCategory();
 
     @Query(value = "SELECT DISTINCT p FROM Products p " +
@@ -27,16 +27,24 @@ public interface ProductReposity extends JpaRepository<ProductEntity, Integer> {
             "LEFT JOIN FETCH p.images " +
             "WHERE p.isActive = true",
             countQuery = "SELECT count(p) FROM Products p WHERE p.isActive = true")
-    Page<ProductEntity> getFewProductsToClient(Pageable pageable);
+    Page<ProductEntity> getProductsToClient(Pageable pageable);
 
-    @Query("SELECT DISTINCT p FROM com.javafood.server.entity.ProductEntity p " +
+    @Query(value = "SELECT DISTINCT p FROM Products p " +
+            "LEFT JOIN FETCH p.category " +
+            "LEFT JOIN FETCH p.discount " +
+            "LEFT JOIN FETCH p.images " +
+            "WHERE p.isActive = true AND p.category.categoryId = :categoryID",
+            countQuery = "SELECT count(p) FROM Products p WHERE p.isActive = true AND p.category.categoryId = :categoryID")
+    Page<ProductEntity> getProductsByCategory(Pageable pageable, @Param("categoryID") int categoryID);
+
+    @Query("SELECT DISTINCT p FROM Products p " +
             "LEFT JOIN FETCH p.category " +
             "LEFT JOIN FETCH p.discount " +
             "LEFT JOIN FETCH p.images " +
             "WHERE p.productId = :productId")
     Optional<ProductEntity> findProductById(@Param("productId") Integer productId);
 
-    @Query(value = "SELECT p FROM com.javafood.server.entity.ProductEntity p LEFT JOIN FETCH p.category LEFT JOIN FETCH p.discount LEFT JOIN FETCH p.images",
+    @Query(value = "SELECT p FROM Products p LEFT JOIN FETCH p.category LEFT JOIN FETCH p.discount LEFT JOIN FETCH p.images",
             countQuery = "SELECT count(p) FROM com.javafood.server.entity.ProductEntity p") // Thêm countQuery để Spring biết cách đếm tổng số phần tử
     Page<ProductEntity> getProductsWithPagination(Pageable pageable);
 }

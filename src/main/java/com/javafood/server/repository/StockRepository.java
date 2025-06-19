@@ -17,7 +17,7 @@ public interface StockRepository extends JpaRepository<StockEntity, Integer> {
     SELECT new com.javafood.server.dto.response.StockResponse(
         s.stockId, s.quantity, p.price, p.productId, p.productName, p.unit
     )
-    FROM com.javafood.server.entity.StockEntity s
+    FROM Stocks s
     JOIN s.product p
 """)
     List<StockResponse> findAllStockAndProduct();
